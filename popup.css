@@ -1,0 +1,27 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    text-align:center;
+    width:200px;
+    padding-top: 8px;
+    padding: 10px;
+}
+
+.title{
+    margin-bottom: 10px;
+}
+button {
+    width:100%;
+    color:white;
+    background-color: #fe9850;
+    border-width:0px;
+    padding:10px;
+    font-weight: bold;
+    cursor:pointer;
+}
+.enabled{
+    background-color: rgb(0, 163, 0);
+}
