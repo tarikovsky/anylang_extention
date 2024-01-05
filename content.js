@@ -16,19 +16,6 @@ async function translation(text) {
         throw error;
     }
 }
-function checkDeviceType() {
-    var width = window.innerWidth;
-
-    if (width >= 1024) {
-        return "ПК";
-    } else if (width >= 768) {
-        return "Планшет";
-    } else {
-        return "Телефон";
-    }
-}
-
-var deviceType = checkDeviceType();
 
 chrome.runtime.sendMessage({ action: "queryStatus" }, function (response) {
     if (response.scriptEnabled) {
@@ -64,72 +51,38 @@ function render(tag, text) {
 
 async function instantTranslate(e) {
     let text;
-    var selectedElement;
-    if (deviceType === 'ПК') {
-        text = e.target.textContent;
-        console.log(text);
-    }
-    else {
-        text = e.textContent;
-    }
+    text = e.target.textContent;
     if (text && active) {
         removeExistingTooltip(); // Удаляет существующий tooltip, если он есть
         let tooltip;
         tooltip = createTooltip(text);
         document.body.appendChild(tooltip);
-        
-        if (deviceType === 'ПК') {
-            let rect = e.target.getBoundingClientRect();
-            if (window.innerHeight - rect.top > rect.bottom) {
-                tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
-            }
-            else {
-                tooltip.style.bottom = `${-rect.top - window.scrollY + 5 + window.innerHeight}px`;
-            }
-            if (window.innerWidth - rect.left > rect.right) {
-                tooltip.style.left = `${rect.left + window.scrollX}px`;
-            }
-            else {
-                tooltip.style.right = `${-rect.right - window.scrollX + window.innerWidth - 18}px`;
-            }
-            tooltip.style.width = `${rect.width - 40}px`
-            tooltip.style.minWidth = '200px'
+
+        let rect = e.target.getBoundingClientRect();
+        if (window.innerHeight - rect.top > rect.bottom) {
+            tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
         }
         else {
-            unhighlightWord(document.querySelector('.checked'));
-            let rect = e.getBoundingClientRect();
-            if (window.innerHeight - rect.top > rect.bottom) {
-                tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
-            }
-            else {
-                tooltip.style.bottom = `${-rect.top - window.scrollY + 5 + window.innerHeight}px`;
-            }
-
-            if (deviceType === 'Планшет') {
-                if (window.innerWidth - rect.left > rect.right) {
-                    tooltip.style.left = `${rect.left + window.scrollX}px`;
-                }
-                else {
-                    tooltip.style.right = `${-rect.right - window.scrollX + window.innerWidth}px`;
-                }
-                tooltip.style.width = `${rect.width - 40}px`
-                tooltip.style.minWidth = '200px'
-            }
-            else if (deviceType === 'Телефон') {
-                tooltip.style.left = `${window.scrollX + 10}px`;
-                tooltip.style.width = `${window.innerWidth - 60}px`
-            }
+            tooltip.style.bottom = `${-rect.top - window.scrollY + 5 + window.innerHeight}px`;
         }
+        if (window.innerWidth - rect.left > rect.right) {
+            tooltip.style.left = `${rect.left + window.scrollX}px`;
+        }
+        else {
+            tooltip.style.right = `${-rect.right - window.scrollX + window.innerWidth - 18}px`;
+        }
+        tooltip.style.width = `${rect.width - 40}px`
+        tooltip.style.minWidth = '200px'
 
-        
+
         render('translatedtText', 'Загрузка...');
         await translation(text)
-        .then(res => {
-            render('translatedtText', res);
-            // console.log(res);
-        })
-        .catch(error => {
-            render('translatedtText', 'Ошибка!');
+            .then(res => {
+                render('translatedtText', res);
+                // console.log(res);
+            })
+            .catch(error => {
+                render('translatedtText', 'Ошибка!');
                 // console.log(error);
             })
     }
@@ -255,23 +208,12 @@ function removeExistingTooltip() {
     }
 }
 document.addEventListener('click', function (event) {
-    if (deviceType === 'ПК') {
-        let tooltip = document.getElementById('customTooltip');
-        let text = document.querySelector('.checked');
-        let targetElement = event.target; // Кликнутый элемент
-        if (!(tooltip && tooltip.contains(targetElement)) && !(text && text.contains(targetElement))) {
-            console.log('delete');
-            removeExistingTooltip();
-        }
-    }
-    else {
-        let tooltip = document.getElementById('customTooltip');
-        let text = document.querySelector('.checked');
-        let targetElement = event.target; // Кликнутый элемент
-        if (!(tooltip && tooltip.contains(targetElement)) && !(text && text.contains(targetElement))) {
-            removeExistingTooltip();
-            unhighlightWord(text);
-        }
+    let tooltip = document.getElementById('customTooltip');
+    let text = document.querySelector('.checked');
+    let targetElement = event.target; // Кликнутый элемент
+    if (!(tooltip && tooltip.contains(targetElement)) && !(text && text.contains(targetElement))) {
+        console.log('delete');
+        removeExistingTooltip();
     }
 })
 
@@ -279,28 +221,16 @@ document.addEventListener('click', function (event) {
 // Функция для добавления выделения
 function highlightWord(event) {
     if (active && event) {
-        if (deviceType === 'ПК') {
-            event.target.classList.add('checked');
-            event.target.style.backgroundColor = '#FFB57C';
-        }
-        else {
-            event.classList.add('checked');
-            event.style.backgroundColor = '#FFB57C';
-        }
+        event.target.classList.add('checked');
+        event.target.style.backgroundColor = '#FFB57C';
     }
 }
 
 // Функция для снятия выделения
 function unhighlightWord(event) {
     if (active && event) {
-        if (deviceType === 'ПК') {
-            event.target.classList.remove('checked');
-            event.target.style.backgroundColor = '';
-        }
-        else {
-            event.classList.remove('checked');
-            event.style.backgroundColor = '';
-        }
+        event.target.classList.remove('checked');
+        event.target.style.backgroundColor = '';
     }
 }
 const tags = ['p', 'h1', 'h2', 'h3', 'h4']
@@ -322,45 +252,42 @@ tags.map((tag) => {
         p.innerHTML = words;
     });
 })
-if (deviceType === 'ПК') {
 
 
-    // Добавляем обработчики событий к каждому слову
-    document.querySelectorAll('w').forEach(word => {
-        word.addEventListener('mouseover', highlightWord);
-        word.addEventListener('mouseout', unhighlightWord);
-        word.addEventListener('click', instantTranslate);
-    });
+// Добавляем обработчики событий к каждому слову
+document.querySelectorAll('w').forEach(word => {
+    word.addEventListener('mouseover', highlightWord);
+    word.addEventListener('mouseout', unhighlightWord);
+    word.addEventListener('click', instantTranslate);
+});
 
-    document.querySelectorAll('se').forEach(se => {
-        se.addEventListener('mouseover', highlightWord);
-        se.addEventListener('mouseout', unhighlightWord);
-        se.addEventListener('click', instantTranslate);
-    });
-}
-else {
-    tags.map((tag) => {
-        document.querySelectorAll(tag).forEach(p => {
-            p.style.userSelect = '#FFB57C';
-            p.addEventListener("mouseup", handleTextSelection);
-        });
-    })
+document.querySelectorAll('se').forEach(se => {
+    se.addEventListener('mouseover', highlightWord);
+    se.addEventListener('mouseout', unhighlightWord);
+    se.addEventListener('click', instantTranslate);
+});
 
-    function handleTextSelection() {
-        if (window.getSelection) {
-            var selection = window.getSelection();
-            range = selection.getRangeAt(0);
-            selectedElement = range.commonAncestorContainer;
+// tags.map((tag) => {
+//     document.querySelectorAll(tag).forEach(p => {
+//         p.style.userSelect = '#FFB57C';
+//         p.addEventListener("mouseup", handleTextSelection);
+//     });
+// })
 
-            if (selectedElement.nodeType === 3) {
-                selectedElement = selectedElement.parentNode;
-            }
-            text = selectedElement.textContent;
-            if (selectedElement.textContent.trim() !== '') {
-                instantTranslate(selectedElement);
-                highlightWord(selectedElement)
-            }
-        }
-    }
+// function handleTextSelection() {
+//     if (window.getSelection) {
+//         var selection = window.getSelection();
+//         range = selection.getRangeAt(0);
+//         selectedElement = range.commonAncestorContainer;
 
-}
+//         if (selectedElement.nodeType === 3) {
+//             selectedElement = selectedElement.parentNode;
+//         }
+//         text = selectedElement.textContent;
+//         if (selectedElement.textContent.trim() !== '') {
+//             instantTranslate(selectedElement);
+//             highlightWord(selectedElement)
+//         }
+//     }
+// }
+
